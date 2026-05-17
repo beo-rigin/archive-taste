@@ -1,0 +1,62 @@
+'use client';
+
+import { SongRecord } from '@/lib/types';
+import { IconHeart, IconHeartFilled, IconMusic } from '@tabler/icons-react';
+
+interface Props {
+  song: SongRecord;
+  onClick: (song: SongRecord) => void;
+  onFavoriteToggle: (id: string, favorited: boolean) => void;
+}
+
+export default function SongCard({ song, onClick, onFavoriteToggle }: Props) {
+  return (
+    <div className="group cursor-pointer" onClick={() => onClick(song)}>
+      {/* 앨범 아트 — 정사각형 */}
+      <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm">
+        {song.album_art_url ? (
+          <img
+            src={song.album_art_url}
+            alt={`${song.title} - ${song.artist}`}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <IconMusic size={32} className="text-gray-400" />
+          </div>
+        )}
+
+        {/* 장르 배지 */}
+        {song.ai_tags?.장르 && (
+          <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-black/50 text-white backdrop-blur-sm">
+            {song.ai_tags.장르}
+          </span>
+        )}
+
+        {/* 즐겨찾기 버튼 */}
+        <button
+          onClick={(e) => { e.stopPropagation(); onFavoriteToggle(song.id, !song.favorited); }}
+          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
+        >
+          {song.favorited
+            ? <IconHeartFilled size={14} className="text-red-500" />
+            : <IconHeart size={14} className="text-gray-500" />}
+        </button>
+
+        {/* hover 오버레이 — 이유 미리보기 */}
+        {song.reason && (
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-end p-3">
+            <p className="text-white text-xs leading-relaxed line-clamp-3">{song.reason}</p>
+          </div>
+        )}
+      </div>
+
+      {/* 곡 정보 */}
+      <div className="mt-2 px-0.5">
+        <p className="text-sm font-semibold text-gray-900 truncate">{song.title}</p>
+        <p className="text-xs text-gray-500 truncate mt-0.5">{song.artist}</p>
+      </div>
+    </div>
+  );
+}

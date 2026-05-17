@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #339d55;
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ── 종이 질감 배경 ── */
+body {
+  background: #f7f6f3;
+  color: #111111;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/*
+  레이어 1 — 섬유 결 (큰 타일, 낮은 주파수, octave 6)
+  800×800 타일 → 반복 경계 거의 안 보임
+  stitchTiles="stitch" → 경계 자연스럽게 이음
+*/
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='800'%3E%3Cfilter id='f1' color-interpolation-filters='linearRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.4 0.42' numOctaves='6' seed='5' stitchTiles='stitch' result='n'/%3E%3CfeColorMatrix type='saturate' values='0' in='n' result='g'/%3E%3CfeComponentTransfer in='g'%3E%3CfeFuncR type='linear' slope='1.4' intercept='-0.18'/%3E%3CfeFuncG type='linear' slope='1.4' intercept='-0.18'/%3E%3CfeFuncB type='linear' slope='1.4' intercept='-0.18'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='800' height='800' fill='white' filter='url(%23f1)'/%3E%3C/svg%3E");
+  background-size: 800px 800px;
+  mix-blend-mode: multiply;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/*
+  레이어 2 — 미세 입자 (큰 타일, 높은 주파수, feComponentTransfer 대비 강화)
+  600×600 타일 → 레이어 1과 위상 달라 자연스럽게 섞임
+*/
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Cfilter id='f2' color-interpolation-filters='linearRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72 0.75' numOctaves='5' seed='12' stitchTiles='stitch' result='n'/%3E%3CfeColorMatrix type='saturate' values='0' in='n' result='g'/%3E%3CfeComponentTransfer in='g'%3E%3CfeFuncR type='linear' slope='1.8' intercept='-0.38'/%3E%3CfeFuncG type='linear' slope='1.8' intercept='-0.38'/%3E%3CfeFuncB type='linear' slope='1.8' intercept='-0.38'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='600' height='600' fill='white' filter='url(%23f2)'/%3E%3C/svg%3E");
+  background-size: 600px 600px;
+  mix-blend-mode: multiply;
+  opacity: 0.13;
+  pointer-events: none;
+  z-index: 9997;
+}
+
+/* Sidebar: fixed height, independent scroll */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 108px;
+  height: calc(100vh - 108px);
+  overflow-y: auto;
+  padding: 1.25rem;
+  border-right: 1px solid #f3f4f6;
+  scrollbar-width: thin;
+  scrollbar-color: #e5e7eb transparent;
+}
+
+.sidebar::-webkit-scrollbar { width: 4px; }
+.sidebar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 2px; }
+
+/* Sticky keyword bar */
+.keyword-bar {
+  position: sticky;
+  top: 108px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Pinterest-style masonry */
+.masonry-grid {
+  columns: 4 200px;
+  column-gap: 0.75rem;
+  padding: 1rem;
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 0.75rem;
+}
+
+.divider {
+  height: 1px;
+  background: #f3f4f6;
+  margin: 1rem 0;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
