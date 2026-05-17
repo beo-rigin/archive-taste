@@ -84,14 +84,15 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Sticky header + tabs */}
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="flex items-center justify-between px-6 h-14">
-          <h1 className="text-sm font-bold tracking-[0.2em] uppercase text-gray-900">
-            ARCHIVE — 나의 취향
-          </h1>
+        <div className="relative flex items-center justify-center px-6 h-14">
+          {/* 가운데 로고 */}
+          <img src="/logo.png" alt="Takeiteasyin" className="h-7 object-contain" />
+
+          {/* 우측 업로드 버튼 */}
           {activeCategory === 'POSTER' && (
             <button
               onClick={() => requireAuth(() => setIsUploadOpen(true))}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold tracking-wide text-white transition-opacity hover:opacity-85"
+              className="absolute right-6 flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold tracking-wide text-white transition-opacity hover:opacity-85"
               style={{ backgroundColor: '#339d55' }}
             >
               <IconPlus size={14} strokeWidth={2.5} />
