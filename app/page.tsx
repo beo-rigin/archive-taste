@@ -10,6 +10,8 @@ import ImageModal from '@/components/ImageModal';
 import UploadModal from '@/components/UploadModal';
 import FoodSection from '@/components/food/FoodSection';
 import SongSection from '@/components/song/SongSection';
+import PasswordModal from '@/components/PasswordModal';
+import { useUploadAuth } from '@/hooks/useUploadAuth';
 import { IconPlus } from '@tabler/icons-react';
 
 function filterByPeriod(images: ImageRecord[], period: Period): ImageRecord[] {
@@ -33,6 +35,7 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState<Category>('POSTER');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(null);
+  const { requireAuth, showPasswordModal, handleAuthSuccess, handleAuthClose } = useUploadAuth();
 
   useEffect(() => {
     fetch('/api/images')
@@ -87,7 +90,7 @@ export default function Home() {
           </h1>
           {activeCategory === 'POSTER' && (
             <button
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => requireAuth(() => setIsUploadOpen(true))}
               className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold tracking-wide text-white transition-opacity hover:opacity-85"
               style={{ backgroundColor: '#339d55' }}
             >
@@ -146,6 +149,10 @@ export default function Home() {
 
       {isUploadOpen && (
         <UploadModal onClose={() => setIsUploadOpen(false)} onImageAdded={handleImageAdded} />
+      )}
+
+      {showPasswordModal && (
+        <PasswordModal onSuccess={handleAuthSuccess} onClose={handleAuthClose} />
       )}
     </div>
   );

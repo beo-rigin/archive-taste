@@ -7,6 +7,8 @@ import FoodCard from './FoodCard';
 import FoodModal from './FoodModal';
 import FoodUploadModal from './FoodUploadModal';
 import KeywordBar from '@/components/KeywordBar';
+import PasswordModal from '@/components/PasswordModal';
+import { useUploadAuth } from '@/hooks/useUploadAuth';
 import { IconPlus } from '@tabler/icons-react';
 
 function filterByPeriod(foods: FoodRecord[], period: Period): FoodRecord[] {
@@ -43,6 +45,7 @@ export default function FoodSection() {
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('all');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedFood, setSelectedFood] = useState<FoodRecord | null>(null);
+  const { requireAuth, showPasswordModal, handleAuthSuccess, handleAuthClose } = useUploadAuth();
 
   useEffect(() => {
     fetch('/api/food')
@@ -96,7 +99,7 @@ export default function FoodSection() {
           {/* 업로드 버튼 + 키워드 바 */}
           <div className="keyword-bar flex items-center gap-3">
             <button
-              onClick={() => setIsUploadOpen(true)}
+              onClick={() => requireAuth(() => setIsUploadOpen(true))}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white shrink-0 hover:opacity-85 transition-opacity"
               style={{ backgroundColor: '#339d55' }}
             >
@@ -135,6 +138,10 @@ export default function FoodSection() {
 
       {isUploadOpen && (
         <FoodUploadModal onClose={() => setIsUploadOpen(false)} onFoodAdded={handleFoodAdded} />
+      )}
+
+      {showPasswordModal && (
+        <PasswordModal onSuccess={handleAuthSuccess} onClose={handleAuthClose} />
       )}
     </>
   );
