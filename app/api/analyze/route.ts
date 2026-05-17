@@ -24,6 +24,11 @@ const FOOD_PROMPT = `이 음식 이미지를 분석해주세요.
 
 export async function POST(request: NextRequest) {
   try {
+    // Anthropic API 키가 없으면 빈 태그 반환 (AI 분석 생략)
+    if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'placeholder') {
+      return NextResponse.json({ tags: {} });
+    }
+
     const { imageUrl, mode = 'poster' } = await request.json();
 
     if (!imageUrl) {
