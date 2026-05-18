@@ -97,12 +97,15 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      if (!res.ok) throw new Error('save failed');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? 'save failed');
+      }
       const saved = await res.json();
       onSaved(saved);
       onClose();
-    } catch {
-      alert('저장 중 오류가 발생했어요.');
+    } catch (e) {
+      alert('저장 오류: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSaving(false);
     }

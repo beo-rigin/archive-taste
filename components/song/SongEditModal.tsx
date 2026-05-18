@@ -45,12 +45,15 @@ export default function SongEditModal({ song, onClose, onSaved }: Props) {
           hashtags,
         }),
       });
-      if (!res.ok) throw new Error('수정 실패');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error ?? '수정 실패');
+      }
       const updated = await res.json();
       onSaved({ ...song, ...updated });
       onClose();
-    } catch {
-      alert('저장 중 오류가 발생했어요.');
+    } catch (e) {
+      alert('저장 오류: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSaving(false);
     }
