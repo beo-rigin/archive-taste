@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { IconX, IconSearch, IconMusic, IconLoader2, IconLink } from '@tabler/icons-react';
+import { useState, KeyboardEvent } from 'react';
+import { IconX, IconSearch, IconMusic, IconLoader2, IconLink, IconHash } from '@tabler/icons-react';
 import { SongRecord, Decade } from '@/lib/types';
 
 interface Props {
@@ -22,7 +22,22 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
   const [artist, setArtist] = useState('');
   const [reason, setReason] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
+  const [hashtags, setHashtags] = useState<string[]>([]);
+  const [hashInput, setHashInput] = useState('');
   const [selectedDecade, setSelectedDecade] = useState<Decade | ''>('');
+
+  function addTag() {
+    const val = hashInput.replace(/^#/, '').trim();
+    if (val && !hashtags.includes(val)) setHashtags((prev) => [...prev, val]);
+    setHashInput('');
+  }
+
+  function handleHashKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter' || e.key === ',' || e.key === ' ') { e.preventDefault(); addTag(); }
+    if (e.key === 'Backspace' && hashInput === '' && hashtags.length > 0) {
+      setHashtags((prev) => prev.slice(0, -1));
+    }
+  }
 
   const [lookupResult, setLookupResult] = useState<{
     artworkUrl: string;
@@ -74,6 +89,7 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
         ai_tags: lookupResult?.genre ? { 장르: lookupResult.genre } : null,
         decade: selectedDecade || null,
         link_url: linkUrl.trim() || null,
+        hashtags,
         favorited: false,
       };
       const res = await fetch('/api/song', {
@@ -237,6 +253,38 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
                 className="flex-1 text-sm focus:outline-none"
               />
             </div>
+          </div>
+
+          {/* 해시태그 */}
+          <div>
+            <label className="block text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+              해시태그 <span className="text-gray-300 normal-case font-normal">(선택)</span>
+            </label>
+            <div
+              className="min-h-[44px] flex flex-wrap gap-1.5 items-center rounded-lg border border-gray-200 px-3 py-2 focus-within:border-accent transition-colors cursor-text"
+              onClick={() => document.getElementById('upload-hash-input')?.focus()}
+            >
+              {hashtags.map((tag) => (
+                <span key={tag} className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full text-xs text-gray-700">
+                  <span className="text-accent text-[10px]">#</span>{tag}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setHashtags((prev) => prev.filter((t) => t !== tag)); }}
+                    className="text-gray-400 hover:text-gray-600 leading-none ml-0.5"
+                  >×</button>
+                </span>
+              ))}
+              <input
+                id="upload-hash-input"
+                value={hashInput}
+                onChange={(e) => setHashInput(e.target.value)}
+                onKeyDown={handleHashKeyDown}
+                onBlur={addTag}
+                placeholder={hashtags.length === 0 ? '날씨, 시간대, 악기... (Enter로 추가)' : ''}
+                className="flex-1 min-w-[100px] text-sm focus:outline-none bg-transparent"
+              />
+            </div>
+            <p className="text-[10px] text-gray-300 mt-1">Enter / 스페이스로 추가, Backspace로 삭제</p>
           </div>
 
           {/* 저장 버튼 */}

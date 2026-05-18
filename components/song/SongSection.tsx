@@ -72,6 +72,11 @@ export default function SongSection() {
     setSongs((prev) => [song, ...prev]);
   }
 
+  function handleSongUpdated(updated: SongRecord) {
+    setSongs((prev) => prev.map((s) => s.id === updated.id ? updated : s));
+    setSelectedSong(updated);
+  }
+
   const hasFilter = selectedTags.length > 0 || selectedDecades.length > 0;
 
   return (
@@ -136,7 +141,7 @@ export default function SongSection() {
       </main>
 
       {selectedSong && (
-        <SongModal song={selectedSong} onClose={() => setSelectedSong(null)} />
+        <SongModal song={selectedSong} onClose={() => setSelectedSong(null)} onSongUpdated={handleSongUpdated} />
       )}
       {showUpload && (
         <SongUploadModal onClose={() => setShowUpload(false)} onSaved={handleSaved} />

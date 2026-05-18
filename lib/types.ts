@@ -50,6 +50,7 @@ export interface SongRecord {
   ai_tags: { 장르?: string };
   decade: Decade | '';
   link_url: string;
+  hashtags: string[];
   favorited: boolean;
   likes: number;
   created_at: string;

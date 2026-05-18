@@ -25,10 +25,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const supabase = getSupabase();
   const body = await request.json();
-  const { title, artist, reason, album_art_url, album_name, ai_tags, decade, link_url, favorited } = body;
+  const { title, artist, reason, album_art_url, album_name, ai_tags, decade, link_url, hashtags, favorited } = body;
   const { data, error } = await supabase
     .from('songs')
-    .insert({ title, artist, reason, album_art_url, album_name, ai_tags, decade: decade ?? '', link_url: link_url ?? '', favorited: favorited ?? false })
+    .insert({ title, artist, reason, album_art_url, album_name, ai_tags, decade: decade ?? '', link_url: link_url ?? '', hashtags: hashtags ?? [], favorited: favorited ?? false })
     .select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
@@ -40,7 +40,12 @@ export async function PATCH(request: NextRequest) {
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
   const body = await request.json();
-  const { data, error } = await supabase.from('songs').update({ favorited: body.favorited }).eq('id', id).select().single();
+  // favorited만 있으면 즐겨찾기 토글, link_url/hashtags 있으면 수정
+  const updates: Record<string, unknown> = {};
+  if (body.favorited !== undefined) updates.favorited = body.favorited;
+  if (body.link_url !== undefined) updates.link_url = body.link_url;
+  if (body.hashtags !== undefined) updates.hashtags = body.hashtags;
+  const { data, error } = await supabase.from('songs').update(updates).eq('id', id).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
 }
