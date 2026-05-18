@@ -25,10 +25,10 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const supabase = getSupabase();
   const body = await request.json();
-  const { title, artist, reason, album_art_url, album_name, ai_tags, favorited } = body;
+  const { title, artist, reason, album_art_url, album_name, ai_tags, decade, link_url, favorited } = body;
   const { data, error } = await supabase
     .from('songs')
-    .insert({ title, artist, reason, album_art_url, album_name, ai_tags, favorited: favorited ?? false })
+    .insert({ title, artist, reason, album_art_url, album_name, ai_tags, decade: decade ?? '', link_url: link_url ?? '', favorited: favorited ?? false })
     .select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
