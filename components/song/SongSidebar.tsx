@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { SongRecord, Period } from '@/lib/types';
+import { SongRecord, Period, Decade } from '@/lib/types';
 
 const PERIODS: { id: Period; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -11,12 +11,22 @@ const PERIODS: { id: Period; label: string }[] = [
   { id: '25Q2', label: '25 Q2' },
 ];
 
+const DECADES: { id: Decade; label: string }[] = [
+  { id: '7080', label: '7080' },
+  { id: '1990', label: '90s' },
+  { id: '2000', label: '2000s' },
+  { id: '2010', label: '2010s' },
+  { id: '2020', label: '2020s' },
+];
+
 interface Props {
   songs: SongRecord[];
   selectedPeriod: Period;
   onPeriodChange: (p: Period) => void;
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
+  selectedDecades: Decade[];
+  onDecadeToggle: (d: Decade) => void;
 }
 
 function topN(items: string[], n: number) {
@@ -47,7 +57,7 @@ function BarList({ items, selectedTags, onTagToggle }: { items: { tag: string; c
   );
 }
 
-export default function SongSidebar({ songs, selectedPeriod, onPeriodChange, selectedTags, onTagToggle }: Props) {
+export default function SongSidebar({ songs, selectedPeriod, onPeriodChange, selectedTags, onTagToggle, selectedDecades, onDecadeToggle }: Props) {
   const topGenres = useMemo(() => topN(songs.map((s) => s.ai_tags?.장르 ?? '').filter(Boolean), 5), [songs]);
   const topArtists = useMemo(() => topN(songs.map((s) => s.artist).filter(Boolean), 5), [songs]);
 
@@ -70,11 +80,25 @@ export default function SongSidebar({ songs, selectedPeriod, onPeriodChange, sel
       <div className="divider" />
 
       <section className="mb-6">
-        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-3">기간</p>
+        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-3">등록 기간</p>
         <div className="flex flex-wrap gap-1.5">
           {PERIODS.map(({ id, label }) => (
             <button key={id} onClick={() => onPeriodChange(id)}
               className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedPeriod === id ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      <div className="divider" />
+
+      <section className="mb-6">
+        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-3">연대</p>
+        <div className="flex flex-wrap gap-1.5">
+          {DECADES.map(({ id, label }) => (
+            <button key={id} onClick={() => onDecadeToggle(id)}
+              className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${selectedDecades.includes(id) ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
               {label}
             </button>
           ))}

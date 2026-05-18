@@ -38,6 +38,8 @@ export interface FoodRecord {
 }
 
 // ── SONG ──────────────────────────────────────────────
+export type Decade = '7080' | '1990' | '2000' | '2010' | '2020';
+
 export interface SongRecord {
   id: string;
   title: string;
@@ -46,6 +48,8 @@ export interface SongRecord {
   album_art_url: string;
   album_name: string;
   ai_tags: { 장르?: string };
+  decade: Decade | '';
+  link_url: string;
   favorited: boolean;
   likes: number;
   created_at: string;

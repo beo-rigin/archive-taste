@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ImageRecord } from '@/lib/types';
-import { IconHeart, IconHeartFilled, IconThumbUp, IconThumbUpFilled } from '@tabler/icons-react';
+import { IconThumbUp, IconThumbUpFilled } from '@tabler/icons-react';
 import { useLike } from '@/hooks/useLike';
 
 interface Props {
@@ -59,34 +59,17 @@ export default function ImageCard({ image, onClick, onFavoriteToggle }: Props) {
           </div>
         </div>
 
-        {/* Favorite button (owner only) */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onFavoriteToggle(image.id, !image.favorited);
-          }}
-          className="absolute top-2 right-2 p-1.5 rounded-full bg-white/80 hover:bg-white transition-colors opacity-0 group-hover:opacity-100"
-          aria-label={image.favorited ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-        >
-          {image.favorited ? (
-            <IconHeartFilled size={14} className="text-red-500" />
-          ) : (
-            <IconHeart size={14} className="text-gray-500" />
-          )}
-        </button>
-
         {/* 나도 좋아요 버튼 */}
         <button
           onClick={toggle}
+          title="나도 좋아요"
           className={`absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold transition-all
             ${isLiked
               ? 'bg-accent text-white'
               : 'bg-white/80 text-gray-600 hover:bg-white opacity-0 group-hover:opacity-100'
             }`}
         >
-          {isLiked
-            ? <IconThumbUpFilled size={12} />
-            : <IconThumbUp size={12} />}
+          {isLiked ? <IconThumbUpFilled size={12} /> : <IconThumbUp size={12} />}
           {count > 0 && <span>{count}</span>}
         </button>
       </div>

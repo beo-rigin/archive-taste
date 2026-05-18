@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
       collectionName: string;
       artworkUrl100: string;
       primaryGenreName: string;
+      releaseDate: string;
     }>;
 
     const best =
@@ -46,12 +47,25 @@ export async function GET(request: NextRequest) {
       .replace('100x100bb', '600x600bb')
       .replace('100x100bb.jpg', '600x600bb.jpg');
 
+    // 연대 계산
+    const releaseYear = best.releaseDate ? new Date(best.releaseDate).getFullYear() : null;
+    let decade = '';
+    if (releaseYear) {
+      if (releaseYear < 1990) decade = '7080';
+      else if (releaseYear < 2000) decade = '1990';
+      else if (releaseYear < 2010) decade = '2000';
+      else if (releaseYear < 2020) decade = '2010';
+      else decade = '2020';
+    }
+
     return NextResponse.json({
       artworkUrl,
       albumName: best.collectionName,
       genre: best.primaryGenreName,
       trackName: best.trackName,
       artistName: best.artistName,
+      releaseYear,
+      decade,
     });
   } catch {
     return NextResponse.json({ error: 'Lookup failed' }, { status: 500 });

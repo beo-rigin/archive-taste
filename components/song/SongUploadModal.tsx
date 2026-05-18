@@ -1,18 +1,28 @@
 'use client';
 
 import { useState } from 'react';
-import { IconX, IconSearch, IconMusic, IconLoader2 } from '@tabler/icons-react';
-import { SongRecord } from '@/lib/types';
+import { IconX, IconSearch, IconMusic, IconLoader2, IconLink } from '@tabler/icons-react';
+import { SongRecord, Decade } from '@/lib/types';
 
 interface Props {
   onClose: () => void;
   onSaved: (song: SongRecord) => void;
 }
 
+const DECADES: { id: Decade; label: string }[] = [
+  { id: '7080', label: '7080' },
+  { id: '1990', label: '90s' },
+  { id: '2000', label: '2000s' },
+  { id: '2010', label: '2010s' },
+  { id: '2020', label: '2020s' },
+];
+
 export default function SongUploadModal({ onClose, onSaved }: Props) {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [reason, setReason] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+  const [selectedDecade, setSelectedDecade] = useState<Decade | ''>('');
 
   const [lookupResult, setLookupResult] = useState<{
     artworkUrl: string;
@@ -20,6 +30,8 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
     genre: string;
     trackName: string;
     artistName: string;
+    releaseYear: number | null;
+    decade: string;
   } | null>(null);
   const [lookupError, setLookupError] = useState('');
   const [lookupLoading, setLookupLoading] = useState(false);
@@ -40,6 +52,8 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
       }
       const data = await res.json();
       setLookupResult(data);
+      // 연대 자동 설정
+      if (data.decade) setSelectedDecade(data.decade as Decade);
     } catch {
       setLookupError('검색 중 오류가 발생했어요.');
     } finally {
@@ -58,6 +72,8 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
         album_art_url: lookupResult?.artworkUrl ?? null,
         album_name: lookupResult?.albumName ?? null,
         ai_tags: lookupResult?.genre ? { 장르: lookupResult.genre } : null,
+        decade: selectedDecade || null,
+        link_url: linkUrl.trim() || null,
         favorited: false,
       };
       const res = await fetch('/api/song', {
@@ -82,7 +98,7 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75" onClick={onClose}>
       <div
-        className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+        className="relative bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
@@ -129,17 +145,13 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
               disabled={!canLookup || lookupLoading}
               className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-gray-200 text-sm text-gray-600 hover:bg-gray-50 hover:border-gray-300 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
-              {lookupLoading
-                ? <IconLoader2 size={15} className="animate-spin" />
-                : <IconSearch size={15} />}
+              {lookupLoading ? <IconLoader2 size={15} className="animate-spin" /> : <IconSearch size={15} />}
               {lookupLoading ? '검색 중...' : '앨범 정보 검색'}
             </button>
           </div>
 
           {/* 에러 */}
-          {lookupError && (
-            <p className="text-xs text-red-400 text-center">{lookupError}</p>
-          )}
+          {lookupError && <p className="text-xs text-red-400 text-center">{lookupError}</p>}
 
           {/* 검색 결과 */}
           {lookupResult && (
@@ -156,17 +168,45 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-gray-900 truncate">{lookupResult.trackName}</p>
                 <p className="text-xs text-gray-500 truncate mt-0.5">{lookupResult.artistName}</p>
-                {lookupResult.albumName && (
-                  <p className="text-xs text-gray-400 truncate mt-0.5">{lookupResult.albumName}</p>
-                )}
-                {lookupResult.genre && (
-                  <span className="inline-block mt-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent text-white">
-                    {lookupResult.genre}
-                  </span>
-                )}
+                {lookupResult.albumName && <p className="text-xs text-gray-400 truncate mt-0.5">{lookupResult.albumName}</p>}
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {lookupResult.genre && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-accent text-white">
+                      {lookupResult.genre}
+                    </span>
+                  )}
+                  {lookupResult.releaseYear && (
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gray-200 text-gray-600">
+                      {lookupResult.releaseYear}년
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
           )}
+
+          {/* 연대 선택 */}
+          <div>
+            <label className="block text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-2">
+              연대
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {DECADES.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setSelectedDecade(selectedDecade === id ? '' : id)}
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                    selectedDecade === id
+                      ? 'bg-accent text-white'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* 좋은 이유 */}
           <div>
@@ -180,6 +220,23 @@ export default function SongUploadModal({ onClose, onSaved }: Props) {
               rows={3}
               className="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-accent transition-colors resize-none"
             />
+          </div>
+
+          {/* 추천 링크 */}
+          <div>
+            <label className="block text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-1.5">
+              추천 링크 <span className="text-gray-300 normal-case font-normal">(선택)</span>
+            </label>
+            <div className="flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 focus-within:border-accent transition-colors">
+              <IconLink size={14} className="text-gray-400 shrink-0" />
+              <input
+                type="url"
+                value={linkUrl}
+                onChange={(e) => setLinkUrl(e.target.value)}
+                placeholder="https://youtube.com/..."
+                className="flex-1 text-sm focus:outline-none"
+              />
+            </div>
           </div>
 
           {/* 저장 버튼 */}

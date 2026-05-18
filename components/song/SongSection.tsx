@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
-import { SongRecord, Period } from '@/lib/types';
+import { SongRecord, Period, Decade } from '@/lib/types';
 import SongSidebar from './SongSidebar';
 import SongCard from './SongCard';
 import SongModal from './SongModal';
@@ -30,6 +30,7 @@ export default function SongSection() {
 
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('all');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedDecades, setSelectedDecades] = useState<Decade[]>([]);
   const [selectedSong, setSelectedSong] = useState<SongRecord | null>(null);
   const [showUpload, setShowUpload] = useState(false);
   const { requireAuth, showPasswordModal, handleAuthSuccess, handleAuthClose } = useUploadAuth();
@@ -45,55 +46,55 @@ export default function SongSection() {
   const periodFiltered = useMemo(() => filterByPeriod(songs, selectedPeriod), [songs, selectedPeriod]);
 
   const displayed = useMemo(() => {
-    if (selectedTags.length === 0) return periodFiltered;
-    return periodFiltered.filter((s) => {
-      const genre = s.ai_tags?.장르 ?? '';
-      const artist = s.artist ?? '';
-      return selectedTags.some((t) => t === genre || t === artist);
-    });
-  }, [periodFiltered, selectedTags]);
+    let result = periodFiltered;
+    if (selectedDecades.length > 0) {
+      result = result.filter((s) => s.decade && selectedDecades.includes(s.decade as Decade));
+    }
+    if (selectedTags.length > 0) {
+      result = result.filter((s) => {
+        const genre = s.ai_tags?.장르 ?? '';
+        const artist = s.artist ?? '';
+        return selectedTags.some((t) => t === genre || t === artist);
+      });
+    }
+    return result;
+  }, [periodFiltered, selectedTags, selectedDecades]);
 
   function handleTagToggle(tag: string) {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
+    setSelectedTags((prev) => prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]);
   }
 
-  async function handleFavoriteToggle(id: string, favorited: boolean) {
-    setSongs((prev) => prev.map((s) => (s.id === id ? { ...s, favorited } : s)));
-    if (selectedSong?.id === id) setSelectedSong((prev) => prev ? { ...prev, favorited } : prev);
-    try {
-      await fetch(`/api/song?id=${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ favorited }),
-      });
-    } catch { /* optimistic — ignore */ }
+  function handleDecadeToggle(decade: Decade) {
+    setSelectedDecades((prev) => prev.includes(decade) ? prev.filter((d) => d !== decade) : [...prev, decade]);
   }
 
   function handleSaved(song: SongRecord) {
     setSongs((prev) => [song, ...prev]);
   }
 
+  const hasFilter = selectedTags.length > 0 || selectedDecades.length > 0;
+
   return (
     <div className="flex gap-8 items-start">
-      {/* 사이드바 */}
       <SongSidebar
         songs={periodFiltered}
         selectedPeriod={selectedPeriod}
         onPeriodChange={setSelectedPeriod}
         selectedTags={selectedTags}
         onTagToggle={handleTagToggle}
+        selectedDecades={selectedDecades}
+        onDecadeToggle={handleDecadeToggle}
       />
 
-      {/* 메인 */}
       <main className="flex-1 min-w-0 pb-16">
-        {/* 상단 헤더 */}
         <div className="flex items-center justify-between mb-6">
           <p className="text-xs text-gray-400">
             {displayed.length}곡
-            {selectedTags.length > 0 && (
-              <button onClick={() => setSelectedTags([])} className="ml-2 text-accent underline underline-offset-2">
+            {hasFilter && (
+              <button
+                onClick={() => { setSelectedTags([]); setSelectedDecades([]); }}
+                className="ml-2 text-accent underline underline-offset-2"
+              >
                 필터 초기화
               </button>
             )}
@@ -107,7 +108,6 @@ export default function SongSection() {
           </button>
         </div>
 
-        {/* 그리드 */}
         {loading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -128,28 +128,19 @@ export default function SongSection() {
                 key={song.id}
                 song={song}
                 onClick={setSelectedSong}
-                onFavoriteToggle={handleFavoriteToggle}
+                onFavoriteToggle={() => {}}
               />
             ))}
           </div>
         )}
       </main>
 
-      {/* 모달 */}
       {selectedSong && (
-        <SongModal
-          song={selectedSong}
-          onClose={() => setSelectedSong(null)}
-          onFavoriteToggle={handleFavoriteToggle}
-        />
+        <SongModal song={selectedSong} onClose={() => setSelectedSong(null)} />
       )}
       {showUpload && (
-        <SongUploadModal
-          onClose={() => setShowUpload(false)}
-          onSaved={handleSaved}
-        />
+        <SongUploadModal onClose={() => setShowUpload(false)} onSaved={handleSaved} />
       )}
-
       {showPasswordModal && (
         <PasswordModal onSuccess={handleAuthSuccess} onClose={handleAuthClose} />
       )}
