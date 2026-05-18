@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { ImageRecord } from '@/lib/types';
-import { IconHeart, IconHeartFilled } from '@tabler/icons-react';
+import { IconHeart, IconHeartFilled, IconThumbUp, IconThumbUpFilled } from '@tabler/icons-react';
+import { useLike } from '@/hooks/useLike';
 
 interface Props {
   image: ImageRecord;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function ImageCard({ image, onClick, onFavoriteToggle }: Props) {
   const [imgError, setImgError] = useState(false);
+  const { isLiked, count, toggle } = useLike(image.id, 'images', image.likes ?? 0);
 
   const allTags = [
     ...(image.user_tags ?? []),
@@ -57,7 +59,7 @@ export default function ImageCard({ image, onClick, onFavoriteToggle }: Props) {
           </div>
         </div>
 
-        {/* Favorite button */}
+        {/* Favorite button (owner only) */}
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -71,6 +73,21 @@ export default function ImageCard({ image, onClick, onFavoriteToggle }: Props) {
           ) : (
             <IconHeart size={14} className="text-gray-500" />
           )}
+        </button>
+
+        {/* 나도 좋아요 버튼 */}
+        <button
+          onClick={toggle}
+          className={`absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold transition-all
+            ${isLiked
+              ? 'bg-accent text-white'
+              : 'bg-white/80 text-gray-600 hover:bg-white opacity-0 group-hover:opacity-100'
+            }`}
+        >
+          {isLiked
+            ? <IconThumbUpFilled size={12} />
+            : <IconThumbUp size={12} />}
+          {count > 0 && <span>{count}</span>}
         </button>
       </div>
     </div>

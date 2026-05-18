@@ -1,7 +1,8 @@
 'use client';
 
 import { SongRecord } from '@/lib/types';
-import { IconHeart, IconHeartFilled, IconMusic } from '@tabler/icons-react';
+import { IconHeart, IconHeartFilled, IconMusic, IconThumbUp, IconThumbUpFilled } from '@tabler/icons-react';
+import { useLike } from '@/hooks/useLike';
 
 interface Props {
   song: SongRecord;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function SongCard({ song, onClick, onFavoriteToggle }: Props) {
+  const { isLiked, count, toggle } = useLike(song.id, 'songs', song.likes ?? 0);
   return (
     <div className="group cursor-pointer" onClick={() => onClick(song)}>
       {/* 앨범 아트 — 정사각형 */}
@@ -50,6 +52,19 @@ export default function SongCard({ song, onClick, onFavoriteToggle }: Props) {
             <p className="text-white text-xs leading-relaxed line-clamp-3">{song.reason}</p>
           </div>
         )}
+
+        {/* 나도 좋아요 */}
+        <button
+          onClick={toggle}
+          className={`absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold transition-all
+            ${isLiked
+              ? 'bg-accent text-white'
+              : 'bg-white/80 text-gray-600 hover:bg-white opacity-0 group-hover:opacity-100'
+            }`}
+        >
+          {isLiked ? <IconThumbUpFilled size={12} /> : <IconThumbUp size={12} />}
+          {count > 0 && <span>{count}</span>}
+        </button>
       </div>
 
       {/* 곡 정보 */}

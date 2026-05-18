@@ -13,6 +13,7 @@ export interface ImageRecord {
   user_tags: string[];
   ai_tags: AiTags;
   favorited: boolean;
+  likes: number;
   created_at: string;
 }
 
@@ -32,6 +33,7 @@ export interface FoodRecord {
   user_tags: string[];
   ai_tags: FoodAiTags;
   favorited: boolean;
+  likes: number;
   created_at: string;
 }
 
@@ -45,6 +47,7 @@ export interface SongRecord {
   album_name: string;
   ai_tags: { 장르?: string };
   favorited: boolean;
+  likes: number;
   created_at: string;
 }
 

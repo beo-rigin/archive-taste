@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { ImageRecord, Period, Category } from '@/lib/types';
+import { IconUsers } from '@tabler/icons-react';
 import CategoryTabs from '@/components/CategoryTabs';
 import Sidebar from '@/components/Sidebar';
 import KeywordBar from '@/components/KeywordBar';
@@ -35,6 +36,7 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState<Category>('POSTER');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<ImageRecord | null>(null);
+  const [totalVisits, setTotalVisits] = useState<number | null>(null);
   const { requireAuth, showPasswordModal, handleAuthSuccess, handleAuthClose } = useUploadAuth();
 
   useEffect(() => {
@@ -42,6 +44,14 @@ export default function Home() {
       .then((r) => r.json())
       .then((data) => setImages(Array.isArray(data) ? data : []))
       .catch(() => setImages([]));
+  }, []);
+
+  // 방문자 수 — 페이지 첫 로드 시 +1
+  useEffect(() => {
+    fetch('/api/stats', { method: 'POST' })
+      .then((r) => r.json())
+      .then((d) => setTotalVisits(d.total_visits ?? 0))
+      .catch(() => setTotalVisits(null));
   }, []);
 
   const periodImages = useMemo(() => filterByPeriod(images, selectedPeriod), [images, selectedPeriod]);
@@ -87,6 +97,14 @@ export default function Home() {
         <div className="relative flex items-center justify-center px-6 h-14">
           {/* 가운데 로고 */}
           <img src="/logo.png" alt="Takeiteasyin" className="h-7 object-contain" />
+
+          {/* 방문자 수 */}
+          {totalVisits !== null && (
+            <div className="absolute left-6 flex items-center gap-1.5 text-gray-400">
+              <IconUsers size={13} />
+              <span className="text-[11px] font-medium">{totalVisits.toLocaleString()}</span>
+            </div>
+          )}
 
           {/* 우측 업로드 버튼 */}
           {activeCategory === 'POSTER' && (

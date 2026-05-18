@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { FoodRecord } from '@/lib/types';
-import { IconHeart, IconHeartFilled, IconMapPin } from '@tabler/icons-react';
+import { IconHeart, IconHeartFilled, IconMapPin, IconThumbUp, IconThumbUpFilled } from '@tabler/icons-react';
+import { useLike } from '@/hooks/useLike';
 
 interface Props {
   food: FoodRecord;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function FoodCard({ food, onClick, onFavoriteToggle }: Props) {
   const [imgError, setImgError] = useState(false);
+  const { isLiked, count, toggle } = useLike(food.id, 'food', food.likes ?? 0);
 
   const chips = [
     food.ai_tags?.대분류,
@@ -71,6 +73,19 @@ export default function FoodCard({ food, onClick, onFavoriteToggle }: Props) {
             {food.ai_tags.대분류}
           </span>
         )}
+
+        {/* 나도 좋아요 */}
+        <button
+          onClick={toggle}
+          className={`absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-semibold transition-all
+            ${isLiked
+              ? 'bg-accent text-white'
+              : 'bg-white/80 text-gray-600 hover:bg-white opacity-0 group-hover:opacity-100'
+            }`}
+        >
+          {isLiked ? <IconThumbUpFilled size={12} /> : <IconThumbUp size={12} />}
+          {count > 0 && <span>{count}</span>}
+        </button>
       </div>
     </div>
   );
