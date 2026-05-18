@@ -8,7 +8,7 @@ import SongModal from './SongModal';
 import SongUploadModal from './SongUploadModal';
 import PasswordModal from '@/components/PasswordModal';
 import { useUploadAuth } from '@/hooks/useUploadAuth';
-import { IconPlus } from '@tabler/icons-react';
+import { IconPlus, IconAdjustments } from '@tabler/icons-react';
 
 function filterByPeriod(songs: SongRecord[], period: Period): SongRecord[] {
   if (period === 'all') return songs;
@@ -33,6 +33,7 @@ export default function SongSection() {
   const [selectedDecades, setSelectedDecades] = useState<Decade[]>([]);
   const [selectedSong, setSelectedSong] = useState<SongRecord | null>(null);
   const [showUpload, setShowUpload] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { requireAuth, showPasswordModal, handleAuthSuccess, handleAuthClose } = useUploadAuth();
 
   useEffect(() => {
@@ -81,29 +82,65 @@ export default function SongSection() {
 
   return (
     <div className="flex gap-8 items-start">
-      <SongSidebar
-        songs={periodFiltered}
-        selectedPeriod={selectedPeriod}
-        onPeriodChange={setSelectedPeriod}
-        selectedTags={selectedTags}
-        onTagToggle={handleTagToggle}
-        selectedDecades={selectedDecades}
-        onDecadeToggle={handleDecadeToggle}
-      />
+      {/* 데스크탑 사이드바 */}
+      <div className="hidden md:block">
+        <SongSidebar
+          songs={periodFiltered}
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={setSelectedPeriod}
+          selectedTags={selectedTags}
+          onTagToggle={handleTagToggle}
+          selectedDecades={selectedDecades}
+          onDecadeToggle={handleDecadeToggle}
+        />
+      </div>
+
+      {/* 모바일 사이드바 — 하단 시트 */}
+      {sidebarOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-black/50"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <div className={`md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl transition-transform duration-300 max-h-[80vh] overflow-y-auto ${sidebarOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+        <div className="flex justify-center pt-2 pb-1">
+          <div className="w-10 h-1 bg-gray-200 rounded-full" />
+        </div>
+        <SongSidebar
+          songs={periodFiltered}
+          selectedPeriod={selectedPeriod}
+          onPeriodChange={(p) => { setSelectedPeriod(p); setSidebarOpen(false); }}
+          selectedTags={selectedTags}
+          onTagToggle={handleTagToggle}
+          selectedDecades={selectedDecades}
+          onDecadeToggle={handleDecadeToggle}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
 
       <main className="flex-1 min-w-0 pb-16">
         <div className="flex items-center justify-between mb-6">
-          <p className="text-xs text-gray-400">
-            {displayed.length}곡
-            {hasFilter && (
-              <button
-                onClick={() => { setSelectedTags([]); setSelectedDecades([]); }}
-                className="ml-2 text-accent underline underline-offset-2"
-              >
-                필터 초기화
-              </button>
-            )}
-          </p>
+          <div className="flex items-center gap-2">
+            {/* 모바일 필터 버튼 */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className={`md:hidden flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${hasFilter ? 'bg-accent text-white' : 'bg-gray-100 text-gray-600'}`}
+            >
+              <IconAdjustments size={13} />
+              필터{hasFilter && ` (${selectedTags.length + selectedDecades.length})`}
+            </button>
+            <p className="text-xs text-gray-400">
+              {displayed.length}곡
+              {hasFilter && (
+                <button
+                  onClick={() => { setSelectedTags([]); setSelectedDecades([]); }}
+                  className="ml-2 text-accent underline underline-offset-2"
+                >
+                  초기화
+                </button>
+              )}
+            </p>
+          </div>
           <button
             onClick={() => requireAuth(() => setShowUpload(true))}
             className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-accent text-white text-xs font-semibold hover:bg-accent/90 transition-colors shadow-sm"
@@ -114,8 +151,8 @@ export default function SongSection() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+            {Array.from({ length: 9 }).map((_, i) => (
               <div key={i} className="aspect-square rounded-xl bg-gray-100 animate-pulse" />
             ))}
           </div>
@@ -127,7 +164,7 @@ export default function SongSection() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
+          <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
             {displayed.map((song) => (
               <SongCard
                 key={song.id}

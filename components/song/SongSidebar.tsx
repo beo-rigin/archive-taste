@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { SongRecord, Period, Decade } from '@/lib/types';
+import { IconX } from '@tabler/icons-react';
 
 const PERIODS: { id: Period; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -27,6 +28,7 @@ interface Props {
   onTagToggle: (tag: string) => void;
   selectedDecades: Decade[];
   onDecadeToggle: (d: Decade) => void;
+  onClose?: () => void;
 }
 
 function topN(items: string[], n: number) {
@@ -57,7 +59,7 @@ function BarList({ items, selectedTags, onTagToggle }: { items: { tag: string; c
   );
 }
 
-export default function SongSidebar({ songs, selectedPeriod, onPeriodChange, selectedTags, onTagToggle, selectedDecades, onDecadeToggle }: Props) {
+export default function SongSidebar({ songs, selectedPeriod, onPeriodChange, selectedTags, onTagToggle, selectedDecades, onDecadeToggle, onClose }: Props) {
   const topGenres = useMemo(() => topN(songs.map((s) => s.ai_tags?.장르 ?? '').filter(Boolean), 5), [songs]);
   const topArtists = useMemo(() => topN(songs.map((s) => s.artist).filter(Boolean), 5), [songs]);
 
@@ -72,6 +74,17 @@ export default function SongSidebar({ songs, selectedPeriod, onPeriodChange, sel
 
   return (
     <aside className="sidebar">
+      {/* 모바일 핸들 + 닫기 */}
+      {onClose && (
+        <div className="flex items-center justify-between mb-4 md:hidden">
+          <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto absolute left-1/2 -translate-x-1/2 top-3" />
+          <span className="text-xs font-bold text-gray-500 tracking-widest uppercase">필터 / 통계</span>
+          <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
+            <IconX size={16} className="text-gray-400" />
+          </button>
+        </div>
+      )}
+
       <section className="mb-6">
         <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-2">나의 음악 취향</p>
         <p className="text-sm font-medium leading-relaxed text-gray-800">{tasteText}</p>
