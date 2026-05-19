@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { ImageRecord, Period, CategoryTagStats } from '@/lib/types';
+import { COLORS } from '@/lib/colors';
 
 const PERIODS: { id: Period; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -25,6 +26,8 @@ interface Props {
   onPeriodChange: (p: Period) => void;
   selectedTags: string[];
   onTagToggle: (tag: string) => void;
+  selectedColors: string[];
+  onColorToggle: (color: string) => void;
 }
 
 function computeTasteDefinition(images: ImageRecord[]): string {
@@ -75,6 +78,8 @@ export default function Sidebar({
   onPeriodChange,
   selectedTags,
   onTagToggle,
+  selectedColors,
+  onColorToggle,
 }: Props) {
   const tasteDefinition = useMemo(() => computeTasteDefinition(images), [images]);
   const categoryStats = useMemo(() => computeCategoryStats(images), [images]);
@@ -89,6 +94,47 @@ export default function Sidebar({
         <p className="text-sm font-medium leading-relaxed text-gray-800">
           {tasteDefinition}
         </p>
+      </section>
+
+      <div className="divider" />
+
+      {/* 색감 필터 */}
+      <section className="mb-6">
+        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-3">
+          색감
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {COLORS.map(({ id, hex }) => {
+            const selected = selectedColors.includes(id);
+            const isLight = id === '하양';
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onColorToggle(id)}
+                title={id}
+                className={`w-6 h-6 rounded-full transition-all ${
+                  isLight ? 'border border-gray-200' : ''
+                } ${selected ? 'ring-2 ring-offset-1 ring-gray-500 scale-110' : 'hover:scale-105 opacity-70 hover:opacity-100'}`}
+                style={{ backgroundColor: hex }}
+              />
+            );
+          })}
+        </div>
+        {selectedColors.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {selectedColors.map((c) => {
+              const color = COLORS.find((x) => x.id === c);
+              return (
+                <span key={c} className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full text-[11px] text-gray-600">
+                  <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color?.hex }} />
+                  {c}
+                  <button onClick={() => onColorToggle(c)} className="text-gray-400 hover:text-gray-600 ml-0.5">×</button>
+                </span>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <div className="divider" />

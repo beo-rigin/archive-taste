@@ -32,6 +32,7 @@ function filterByPeriod(images: ImageRecord[], period: Period): ImageRecord[] {
 export default function Home() {
   const [images, setImages] = useState<ImageRecord[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedColors, setSelectedColors] = useState<string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<Period>('all');
   const [activeCategory, setActiveCategory] = useState<Category>('POSTER');
   const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -57,20 +58,39 @@ export default function Home() {
   const periodImages = useMemo(() => filterByPeriod(images, selectedPeriod), [images, selectedPeriod]);
 
   const filteredImages = useMemo(() => {
-    if (selectedTags.length === 0) return periodImages;
-    return periodImages.filter((img) => {
-      const tags = [
-        ...(img.user_tags ?? []),
-        ...Object.values(img.ai_tags ?? {}).filter(Boolean),
-      ];
-      return selectedTags.every((t) => tags.includes(t));
-    });
-  }, [periodImages, selectedTags]);
+    let result = periodImages;
+    if (selectedColors.length > 0) {
+      result = result.filter((img) =>
+        (img.color_tags ?? []).some((c) => selectedColors.includes(c)),
+      );
+    }
+    if (selectedTags.length > 0) {
+      result = result.filter((img) => {
+        const tags = [
+          ...(img.user_tags ?? []),
+          ...Object.values(img.ai_tags ?? {}).filter(Boolean),
+        ];
+        return selectedTags.every((t) => tags.includes(t));
+      });
+    }
+    return result;
+  }, [periodImages, selectedTags, selectedColors]);
 
   const handleTagToggle = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
+  };
+
+  const handleColorToggle = (color: string) => {
+    setSelectedColors((prev) =>
+      prev.includes(color) ? prev.filter((c) => c !== color) : [...prev, color],
+    );
+  };
+
+  const handleImageUpdated = (updated: ImageRecord) => {
+    setImages((prev) => prev.map((img) => img.id === updated.id ? updated : img));
+    setSelectedImage(updated);
   };
 
   const handleFavoriteToggle = async (id: string, favorited: boolean) => {
@@ -129,6 +149,8 @@ export default function Home() {
             onPeriodChange={setSelectedPeriod}
             selectedTags={selectedTags}
             onTagToggle={handleTagToggle}
+            selectedColors={selectedColors}
+            onColorToggle={handleColorToggle}
           />
 
           <main className="flex-1 min-w-0">
@@ -163,6 +185,7 @@ export default function Home() {
           image={selectedImage}
           onClose={() => setSelectedImage(null)}
           onFavoriteToggle={handleFavoriteToggle}
+          onImageUpdated={handleImageUpdated}
         />
       )}
 

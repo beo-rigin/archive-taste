@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import { ImageRecord, AiTags } from '@/lib/types';
+import { COLORS } from '@/lib/colors';
 import { supabase } from '@/lib/supabase';
 import {
   IconX,
@@ -40,7 +41,12 @@ export default function UploadModal({ onClose, onImageAdded }: Props) {
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [userTagsInput, setUserTagsInput] = useState('');
+  const [colorTags, setColorTags] = useState<string[]>([]);
   const [favorited, setFavorited] = useState(false);
+
+  function toggleColor(id: string) {
+    setColorTags((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
+  }
   const [isSaving, setIsSaving] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -119,10 +125,8 @@ export default function UploadModal({ onClose, onImageAdded }: Props) {
         body: JSON.stringify({
           src_url: storageUrl,
           reason: reason.trim(),
-          user_tags: userTagsInput
-            .split(',')
-            .map((t) => t.trim())
-            .filter(Boolean),
+          user_tags: userTagsInput.split(',').map((t) => t.trim()).filter(Boolean),
+          color_tags: colorTags,
           ai_tags: aiTags ?? {},
           favorited,
         }),
@@ -331,6 +335,45 @@ export default function UploadModal({ onClose, onImageAdded }: Props) {
                   placeholder="태그1, 태그2, 태그3 (쉼표로 구분)"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none focus:border-accent transition-colors"
                 />
+              </div>
+
+              {/* 색감 선택 */}
+              <div>
+                <label className="block text-xs font-bold tracking-widest text-gray-400 uppercase mb-2">
+                  색감 <span className="text-gray-300 normal-case font-normal">(선택)</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {COLORS.map(({ id, hex }) => {
+                    const selected = colorTags.includes(id);
+                    const isLight = id === '하양';
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => toggleColor(id)}
+                        title={id}
+                        className={`w-7 h-7 rounded-full transition-all ${
+                          isLight ? 'border border-gray-200' : ''
+                        } ${selected ? 'ring-2 ring-offset-2 ring-gray-400 scale-110' : 'hover:scale-105 opacity-60 hover:opacity-100'}`}
+                        style={{ backgroundColor: hex }}
+                      />
+                    );
+                  })}
+                </div>
+                {colorTags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {colorTags.map((c) => {
+                      const color = COLORS.find((x) => x.id === c);
+                      return (
+                        <span key={c} className="flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full text-xs text-gray-600">
+                          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: color?.hex }} />
+                          {c}
+                          <button onClick={() => toggleColor(c)} className="text-gray-400 hover:text-gray-600 ml-0.5">×</button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Favorited */}

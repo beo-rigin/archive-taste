@@ -11,6 +11,7 @@ export interface ImageRecord {
   src_url: string;
   reason: string;
   user_tags: string[];
+  color_tags: string[];
   ai_tags: AiTags;
   favorited: boolean;
   likes: number;

@@ -32,11 +32,11 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const supabase = getSupabase();
   const body = await request.json();
-  const { src_url, reason, user_tags, ai_tags, favorited } = body;
+  const { src_url, reason, user_tags, color_tags, ai_tags, favorited } = body;
 
   const { data, error } = await supabase
     .from('images')
-    .insert({ src_url, reason, user_tags, ai_tags, favorited: favorited ?? false })
+    .insert({ src_url, reason, user_tags, color_tags: color_tags ?? [], ai_tags, favorited: favorited ?? false })
     .select()
     .single();
 
@@ -52,9 +52,14 @@ export async function PATCH(request: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 });
 
   const body = await request.json();
+  const updates: Record<string, unknown> = {};
+  if (body.favorited !== undefined) updates.favorited = body.favorited;
+  if (body.user_tags !== undefined) updates.user_tags = body.user_tags;
+  if (body.color_tags !== undefined) updates.color_tags = body.color_tags;
+
   const { data, error } = await supabase
     .from('images')
-    .update({ favorited: body.favorited })
+    .update(updates)
     .eq('id', id)
     .select()
     .single();
